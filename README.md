@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎁 Amigo secreto
 
-## Getting Started
+Sorteio de amigo secreto para a família. Cada pessoa recebe um link só dela; nem o organizador vê quem tirou quem.
 
-First, run the development server:
+Next.js + Supabase (acesso só pelo servidor). Participantes não têm login nem pagamento.
+
+## Rodar local
+
+1. Supabase → projeto `amigo-secreto` → Project Settings → API Keys → copie a **Secret key** (`sb_secret_…`).
+2. Cole em `.env.local` em `SUPABASE_SERVICE_ROLE_KEY=` (a `SUPABASE_URL` já está).
+3. Escolha uma senha para o admin e cole em `ADMIN_PASSWORD=` (use algo longo e único).
+4. `npm install && npm run dev` → http://localhost:3000
+
+O schema está em `supabase/schema.sql` (já aplicado no projeto).
+
+## Deploy na Vercel
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx vercel            # primeira vez: vincula o projeto
+npx vercel env add SUPABASE_URL
+npx vercel env add SUPABASE_SERVICE_ROLE_KEY
+npx vercel env add ADMIN_PASSWORD
+npx vercel --prod
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+A secret key nunca vai para o navegador: só é lida em Server Actions e páginas de servidor.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Admin (`/admin`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Painel só para você, protegido pela senha `ADMIN_PASSWORD` (sem ela definida, o `/admin` fica desligado).
 
-## Learn More
+- Lista todos os grupos (sorteado ou não, quantas pessoas, quantas já abriram).
+- Em cada grupo: abrir ou copiar o link do painel do organizador, editar nome, valor, data e recado, e excluir o grupo (apaga participantes e sorteio).
+- Não mostra quem tirou quem, mas o painel do organizador lista os links dos participantes.
+- Sessão por cookie assinado (httpOnly, 7 dias). Trocar a senha desconecta todo mundo.
 
-To learn more about Next.js, take a look at the following resources:
+## Como funciona
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/admin/novo` cria o grupo (mín. 3 pessoas). Só o admin cria; `/` leva para o `/admin`.
+- No painel: sortear, copiar link / enviar por WhatsApp, ver quem já abriu. Clicar em um participante mostra se a lista foi preenchida e o que tem nela.
+- `/p/<token>`: a pessoa preenche o que quer e o que não quer ganhar (obrigatório) e só então revela quem tirou. Dá para editar depois. Cada item pode ter um link de loja.
+- Refazer o sorteio só é possível enquanto ninguém abriu o link.
+- O painel `/g/<token>` é identificado só pelo link; o admin encontra todos em `/admin`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`npm test` (sorteio: ninguém tira a si mesmo, todos são tirados uma vez, com 3, 4 e 50 pessoas).
