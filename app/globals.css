@@ -89,3 +89,15 @@
     cursor: pointer;
   }
 }
+
+/* Nome da raspadinha aparecendo. */
+@keyframes pop {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}

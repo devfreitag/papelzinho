@@ -2,21 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
 import { listIsComplete, shortDate, wishItems } from "@/lib/format";
-import { revealMine } from "@/app/actions";
-import { SubmitButton } from "@/components/SubmitButton";
+import { scratchReveal } from "@/app/actions";
+import { ScratchCard } from "@/components/ScratchCard";
 import { Header, SectionTag } from "@/components/ui";
 import { WishItems } from "@/components/WishItems";
 import { WishlistForm } from "@/components/WishlistForm";
-import { box, boxDark, btnPrimary, btnText, heading, label, screen, title } from "@/components/styles";
+import { box, boxDark, btnPrimary, btnText, heading, label, nameSize, screen, title } from "@/components/styles";
 
 export const metadata = { title: "Seu amigo secreto" };
-
-/** Nome grande, mas que não estoura a largura do cartão. */
-function nameSize(name: string) {
-  if (name.length <= 8) return "text-[clamp(48px,12vw,96px)]";
-  if (name.length <= 12) return "text-[clamp(36px,9vw,72px)]";
-  return "text-[clamp(28px,6vw,48px)]";
-}
 
 export default async function ParticipantPage({ params }: PageProps<"/p/[token]">) {
   const { token } = await params;
@@ -150,21 +143,10 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
           </section>
         ) : drawn ? (
           <>
-            <div className="flex flex-col items-center gap-4 rounded-[4px] border-[3px] border-ink bg-green p-8 text-center shadow-hard">
-              <div className={label}>Você tirou</div>
-              <div className="text-6xl font-bold leading-none tracking-[0.12em]" role="img" aria-label="nome escondido">
-                ?????
-              </div>
-              <p className="font-medium">
-                {waitingOthers
-                  ? "Aguardando todo mundo terminar a lista de desejos."
-                  : "Só você vê. Depois de revelar, o nome fica salvo neste link."}
-              </p>
-            </div>
-            {!waitingOthers && (
-              <form action={revealMine.bind(null, token)}>
-                <SubmitButton>Toque para revelar →</SubmitButton>
-              </form>
+            {waitingOthers ? (
+              <ScratchCard />
+            ) : (
+              <ScratchCard reveal={scratchReveal.bind(null, token)} />
             )}
             <Link href={`/p/${token}/lista`} className={btnText}>Editar minha lista</Link>
           </>

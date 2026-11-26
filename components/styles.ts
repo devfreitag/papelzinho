@@ -38,3 +38,10 @@ export const boxLink = `${edge} lift block h-full p-4`;
 export const row = "flex items-center gap-3 border-b-[3px] border-ink px-3 py-2 last:border-b-0";
 export const chip =
   "inline-flex items-center gap-1 rounded-[4px] border-2 border-ink px-2 py-1 text-[13px] font-bold leading-tight";
+
+/** Nome grande, mas que não estoura a largura do cartão. */
+export function nameSize(name: string) {
+  if (name.length <= 8) return "text-[clamp(48px,12vw,96px)]";
+  if (name.length <= 12) return "text-[clamp(36px,9vw,72px)]";
+  return "text-[clamp(28px,6vw,48px)]";
+}

@@ -64,7 +64,8 @@ export async function runDraw(adminToken: string): Promise<void> {
   revalidatePath(`/g/${adminToken}`);
 }
 
-export async function revealMine(token: string) {
+/** Marca o link como aberto, se já pode revelar. Devolve o id da pessoa, ou null se ainda não pode. */
+async function openMine(token: string): Promise<string | null> {
   const supabase = db();
   const { data: me, error } = await supabase
     .from("participants")
@@ -73,20 +74,38 @@ export async function revealMine(token: string) {
     .maybeSingle();
   if (error) throw new Error(error.message);
   const group = Array.isArray(me?.groups) ? me.groups[0] : me?.groups;
-  if (!me || !group?.drawn_at) return; // só revela depois do sorteio
-  if (!listIsComplete(me)) return; // e depois de preencher a própria lista
+  if (!me || !group?.drawn_at) return null; // só revela depois do sorteio
+  if (!listIsComplete(me)) return null; // e depois de preencher a própria lista
   const { data: everyone, error: eErr } = await supabase
     .from("participants")
     .select("wishlist, dislikes")
     .eq("group_id", me.group_id);
   if (eErr) throw new Error(eErr.message);
-  if (!everyone?.every(listIsComplete)) return; // e só quando todo o grupo tiver terminado a lista
+  if (!everyone?.every(listIsComplete)) return null; // e só quando todo o grupo tiver terminado a lista
   await supabase
     .from("participants")
     .update({ opened_at: new Date().toISOString() })
     .eq("id", me.id)
     .is("opened_at", null);
-  revalidatePath(`/p/${token}`);
+  return me.id;
+}
+
+/**
+ * Para a raspadinha: abre o link e devolve só o nome de quem a pessoa tirou.
+ * Não revalida a página, senão ela trocaria de tela no meio da raspagem; o cliente atualiza no fim.
+ */
+export async function scratchReveal(token: string): Promise<{ name: string } | null> {
+  const id = await openMine(token);
+  if (!id) return null;
+  const { data: draw, error } = await db()
+    .from("draws")
+    .select("receiver:participants!draws_receiver_id_fkey(name)")
+    .eq("giver_id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const r = draw?.receiver;
+  const receiver = Array.isArray(r) ? r[0] : r;
+  return receiver ? { name: receiver.name } : null;
 }
 
 export async function saveWishlist(token: string, _: FormState, formData: FormData): Promise<FormState> {
