@@ -25,7 +25,7 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
   const { data: me, error } = await supabase
     .from("participants")
     .select(
-      "id, name, wishlist, dislikes, opened_at, groups!participants_group_id_fkey(name, budget, exchange_date, message, drawn_at)",
+      "id, group_id, name, wishlist, dislikes, opened_at, groups!participants_group_id_fkey(name, budget, exchange_date, message, drawn_at)",
     )
     .eq("token", token)
     .maybeSingle();
@@ -39,6 +39,18 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
 
   const drawn = !!group.drawn_at;
   const ready = listIsComplete(me);
+
+  // Só dá para revelar quando todo mundo do grupo terminou a lista.
+  let pendingLists = 0;
+  if (drawn && ready && !me.opened_at) {
+    const { data: everyone, error: eErr } = await supabase
+      .from("participants")
+      .select("wishlist, dislikes")
+      .eq("group_id", me.group_id);
+    if (eErr) throw new Error(eErr.message);
+    pendingLists = (everyone ?? []).filter((p) => !listIsComplete(p)).length;
+  }
+  const waitingOthers = pendingLists > 0;
 
   let friend: { name: string; wishlist: string; dislikes: string } | null = null;
   if (drawn && me.opened_at) {
@@ -109,7 +121,9 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
             {intro ? `${intro}. ` : ""}
             {drawn
               ? ready
-                ? "Sua lista está pronta. Agora é só revelar."
+                ? waitingOthers
+                  ? `Sua lista está pronta. O nome só aparece quando todo mundo terminar a lista: ${pendingLists === 1 ? "falta 1 pessoa" : `faltam ${pendingLists} pessoas`}. Volte neste link mais tarde.`
+                  : "Sua lista está pronta. Agora é só revelar."
                 : "Seu amigo secreto já foi sorteado. Antes de revelar, conte o que você quer e o que não quer ganhar."
               : "O sorteio ainda não foi feito. Volte neste link mais tarde."}
           </p>
@@ -141,11 +155,17 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
               <div className="text-6xl font-bold leading-none tracking-[0.12em]" role="img" aria-label="nome escondido">
                 ?????
               </div>
-              <p className="font-medium">Só você vê. Depois de revelar, o nome fica salvo neste link.</p>
+              <p className="font-medium">
+                {waitingOthers
+                  ? "Aguardando todo mundo terminar a lista de desejos."
+                  : "Só você vê. Depois de revelar, o nome fica salvo neste link."}
+              </p>
             </div>
-            <form action={revealMine.bind(null, token)}>
-              <SubmitButton>Toque para revelar →</SubmitButton>
-            </form>
+            {!waitingOthers && (
+              <form action={revealMine.bind(null, token)}>
+                <SubmitButton>Toque para revelar →</SubmitButton>
+              </form>
+            )}
             <Link href={`/p/${token}/lista`} className={btnText}>Editar minha lista</Link>
           </>
         ) : (

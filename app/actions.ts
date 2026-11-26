@@ -68,13 +68,19 @@ export async function revealMine(token: string) {
   const supabase = db();
   const { data: me, error } = await supabase
     .from("participants")
-    .select("id, wishlist, dislikes, groups!participants_group_id_fkey(drawn_at)")
+    .select("id, group_id, wishlist, dislikes, groups!participants_group_id_fkey(drawn_at)")
     .eq("token", token)
     .maybeSingle();
   if (error) throw new Error(error.message);
   const group = Array.isArray(me?.groups) ? me.groups[0] : me?.groups;
   if (!me || !group?.drawn_at) return; // só revela depois do sorteio
   if (!listIsComplete(me)) return; // e depois de preencher a própria lista
+  const { data: everyone, error: eErr } = await supabase
+    .from("participants")
+    .select("wishlist, dislikes")
+    .eq("group_id", me.group_id);
+  if (eErr) throw new Error(eErr.message);
+  if (!everyone?.every(listIsComplete)) return; // e só quando todo o grupo tiver terminado a lista
   await supabase
     .from("participants")
     .update({ opened_at: new Date().toISOString() })

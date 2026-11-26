@@ -38,7 +38,7 @@ Painel só para você, protegido pela senha `ADMIN_PASSWORD` (sem ela definida, 
 
 - `/admin/novo` cria o grupo (mín. 3 pessoas). Só o admin cria; `/` leva para o `/admin`.
 - No painel: sortear, copiar link / enviar por WhatsApp, ver quem já abriu. Clicar em um participante mostra se a lista foi preenchida e o que tem nela.
-- `/p/<token>`: a pessoa preenche o que quer e o que não quer ganhar (obrigatório) e só então revela quem tirou. Dá para editar depois. Cada item pode ter um link de loja.
+- `/p/<token>`: a pessoa preenche o que quer e o que não quer ganhar (obrigatório) e só revela quem tirou depois que todos do grupo terminarem a lista. Dá para editar depois. Cada item pode ter um link de loja.
 - Refazer o sorteio só é possível enquanto ninguém abriu o link.
 - O painel `/g/<token>` é identificado só pelo link; o admin encontra todos em `/admin`.
 
