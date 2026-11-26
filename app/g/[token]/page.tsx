@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/supabase";
 import { listIsComplete, shortDate } from "@/lib/format";
 import { addParticipant, removeParticipant, runDraw } from "@/app/actions";
@@ -6,7 +8,7 @@ import { ParticipantRow } from "@/components/ParticipantRow";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Header, ProgressBar, SectionTag, XIcon } from "@/components/ui";
-import { box, boxDark, btnAdd, btnIcon, field, heading, label, lead, meta, screenWide, title } from "@/components/styles";
+import { box, boxDark, btnAdd, btnIcon, btnText, field, heading, label, lead, meta, screenWide, title } from "@/components/styles";
 
 export const metadata = { title: "Painel do organizador" };
 
@@ -30,6 +32,11 @@ export default async function AdminPage({ params }: PageProps<"/g/[token]">) {
   if (pErr) throw new Error(pErr.message);
   const participants = people ?? [];
 
+  // Só quem está logado como admin tem para onde voltar; o link do painel sozinho não dá acesso ao /admin.
+  const backToGroup = (await isAdmin()) ? (
+    <Link href={`/admin/${group.id}`} className={btnText}>← Voltar ao grupo</Link>
+  ) : null;
+
   const drawn = !!group.drawn_at;
   const openedCount = participants.filter((p) => p.opened_at).length;
   const missing = participants.length - openedCount;
@@ -51,6 +58,7 @@ export default async function AdminPage({ params }: PageProps<"/g/[token]">) {
       <>
         <Header right="Painel" />
         <main className={screenWide}>
+          {backToGroup}
           <div>
             <SectionTag>{group.name}</SectionTag>
             <h1 className={title}>Quem participa?</h1>
@@ -107,6 +115,7 @@ export default async function AdminPage({ params }: PageProps<"/g/[token]">) {
     <>
       <Header right="Painel" />
       <main className={screenWide}>
+        {backToGroup}
         <div>
           <SectionTag>{group.name}</SectionTag>
           <h1 className={title}>Sorteio feito</h1>

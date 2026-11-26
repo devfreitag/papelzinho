@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { chip } from "./styles";
 
 /** Faixa de bengala doce, o detalhe de Natal. Cores chapadas, sem degradê. */
@@ -19,7 +20,7 @@ export function Header({ right }: { right?: React.ReactNode }) {
   return (
     <header className="sticky top-0 z-10 bg-white">
       <div className="flex h-[60px] items-center justify-between gap-4 border-b-[3px] border-ink px-5 md:px-10">
-        <div className="flex shrink-0 items-center gap-2">
+        <Link href="/" aria-label="papelzinho, página inicial" className="flex shrink-0 items-center gap-2">
           <svg width="28" height="28" viewBox="0 -2 28 28" aria-hidden="true" style={{ overflow: "visible" }}>
             <path d="M5 4h14l5 5v15H5z" fill="#FFE600" stroke="#0A0A0A" strokeWidth="2" />
             <path d="M4 6C6-1 15-2 20 3L22 6Z" fill="#E4262C" stroke="#0A0A0A" strokeWidth="2" />
@@ -27,7 +28,7 @@ export function Header({ right }: { right?: React.ReactNode }) {
             <circle cx="22.5" cy="6.5" r="2.5" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2" />
           </svg>
           <span className="text-lg font-bold uppercase tracking-[-0.02em]">papelzinho</span>
-        </div>
+        </Link>
         {right && <div className="min-w-0 truncate text-sm font-bold">{right}</div>}
       </div>
       <CandyStripe />

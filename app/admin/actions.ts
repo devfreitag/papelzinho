@@ -107,26 +107,27 @@ export async function deleteGroup(id: string): Promise<void> {
  * Refaz o sorteio mesmo depois de alguém ter aberto o link, e marca todos como "não abriu".
  * Não mexe nas listas de desejos nem nos links dos participantes.
  */
-export async function redrawGroup(id: string): Promise<void> {
+export async function redrawGroup(id: string): Promise<FormState> {
   await requireAdmin();
-  if (!UUID.test(id)) return;
+  if (!UUID.test(id)) return { error: "Grupo inválido." };
   const supabase = db();
 
   const { data: group } = await supabase.from("groups").select("admin_token, drawn_at").eq("id", id).maybeSingle();
-  if (!group?.drawn_at) return; // só refaz um sorteio que já existe
+  if (!group?.drawn_at) return { error: "Este grupo ainda não foi sorteado." };
 
   const { data: people } = await supabase.from("participants").select("id").eq("group_id", id);
-  if (!people || people.length < 3) return;
+  if (!people || people.length < 3) return { error: "O grupo precisa ter pelo menos 3 pessoas." };
 
   const pairs = drawPairs(people.map((p) => p.id));
   await supabase.from("draws").delete().eq("group_id", id);
   const { error } = await supabase
     .from("draws")
     .insert(pairs.map(([giver_id, receiver_id]) => ({ group_id: id, giver_id, receiver_id })));
-  if (error) throw new Error("Falha ao gravar o sorteio");
+  if (error) return { error: "Não consegui gravar o novo sorteio. Tente de novo." };
   const { error: oErr } = await supabase.from("participants").update({ opened_at: null }).eq("group_id", id);
-  if (oErr) throw new Error("Falha ao limpar quem já abriu");
+  if (oErr) return { error: "O sorteio foi refeito, mas não consegui limpar quem já abriu. Tente de novo." };
 
   revalidatePath(`/admin/${id}`);
   revalidatePath(`/g/${group.admin_token}`);
+  return { ok: true };
 }
