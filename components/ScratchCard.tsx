@@ -103,11 +103,8 @@ function paintGift(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.stroke();
 }
 
-/**
- * Raspadinha em forma de presente: o embrulho sai com o dedo e o nome aparece embaixo.
- * Sem `reveal`, o presente fica fechado (ainda falta alguém terminar a lista).
- */
-export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string } | null> }) {
+/** Raspadinha em forma de presente: o embrulho sai com o dedo e o nome aparece embaixo. */
+export function ScratchCard({ reveal }: { reveal: () => Promise<{ name: string } | null> }) {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
@@ -140,7 +137,7 @@ export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string 
   }, [status]);
 
   async function ask() {
-    if (asked.current || !reveal) return;
+    if (asked.current) return;
     asked.current = true;
     try {
       const res = await reveal();
@@ -189,7 +186,6 @@ export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string 
   }
 
   function finish() {
-    if (!reveal) return;
     drawing.current = false;
     last.current = null;
     setStatus("done");
@@ -197,7 +193,7 @@ export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string 
   }
 
   function onDown(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (status === "done" || !reveal) return;
+    if (status === "done") return;
     e.currentTarget.setPointerCapture(e.pointerId);
     drawing.current = true;
     const p = point(e);
@@ -222,7 +218,6 @@ export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string 
   }
 
   const done = status === "done";
-  const locked = !reveal;
 
   return (
     <div className="flex flex-col gap-4">
@@ -240,24 +235,22 @@ export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string 
           </span>
           <canvas
             ref={canvasRef}
-            aria-label={locked ? "Presente fechado" : "Presente: raspe o papel para revelar quem você tirou"}
+            aria-label="Presente: raspe o papel para revelar quem você tirou"
             role="img"
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
             onPointerCancel={onUp}
-            className={`absolute inset-0 size-full select-none transition-opacity duration-500 ${
-              locked ? "" : "cursor-grab touch-none active:cursor-grabbing"
-            } ${done ? "pointer-events-none opacity-0" : ""}`}
+            className={`absolute inset-0 size-full cursor-grab touch-none select-none transition-opacity duration-500 active:cursor-grabbing ${
+              done ? "pointer-events-none opacity-0" : ""
+            }`}
           />
         </div>
 
         <p className="text-sm text-body">
-          {locked
-            ? "O presente abre quando todo mundo terminar a lista de desejos."
-            : done
-              ? "Só você vê. O nome fica salvo neste link."
-              : "Raspe o papel de presente com o dedo ou o mouse. Só você vê."}
+          {done
+            ? "Só você vê. O nome fica salvo neste link."
+            : "Raspe o papel de presente com o dedo ou o mouse. Só você vê."}
         </p>
       </div>
 
@@ -271,8 +264,7 @@ export function ScratchCard({ reveal }: { reveal?: () => Promise<{ name: string 
           {refreshing ? "Aguarde…" : `Ver o que ${name} quer ganhar →`}
         </button>
       ) : (
-        !done &&
-        !locked && (
+        !done && (
           <button type="button" onClick={finish} className={btnText}>
             Revelar sem raspar
           </button>

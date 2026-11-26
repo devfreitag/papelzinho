@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/supabase";
 import { listIsComplete, shortDate, wishItems } from "@/lib/format";
 import { scratchReveal } from "@/app/actions";
+import { LockedCard } from "@/components/LockedCard";
 import { ScratchCard } from "@/components/ScratchCard";
 import { Header, SectionTag } from "@/components/ui";
 import { WishItems } from "@/components/WishItems";
@@ -35,12 +36,14 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
 
   // Só dá para revelar quando todo mundo do grupo terminou a lista.
   let pendingLists = 0;
+  let totalPeople = 0;
   if (drawn && ready && !me.opened_at) {
     const { data: everyone, error: eErr } = await supabase
       .from("participants")
       .select("wishlist, dislikes")
       .eq("group_id", me.group_id);
     if (eErr) throw new Error(eErr.message);
+    totalPeople = everyone?.length ?? 0;
     pendingLists = (everyone ?? []).filter((p) => !listIsComplete(p)).length;
   }
   const waitingOthers = pendingLists > 0;
@@ -115,7 +118,7 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
             {drawn
               ? ready
                 ? waitingOthers
-                  ? `Sua lista está pronta. O nome só aparece quando todo mundo terminar a lista: ${pendingLists === 1 ? "falta 1 pessoa" : `faltam ${pendingLists} pessoas`}. Volte neste link mais tarde.`
+                  ? "Sua lista está pronta. Volte neste link mais tarde para revelar."
                   : "Sua lista está pronta. Agora é só revelar."
                 : "Seu amigo secreto já foi sorteado. Antes de revelar, conte o que você quer e o que não quer ganhar."
               : "O sorteio ainda não foi feito. Volte neste link mais tarde."}
@@ -144,7 +147,7 @@ export default async function ParticipantPage({ params }: PageProps<"/p/[token]"
         ) : drawn ? (
           <>
             {waitingOthers ? (
-              <ScratchCard />
+              <LockedCard done={totalPeople - pendingLists} total={totalPeople} />
             ) : (
               <ScratchCard reveal={scratchReveal.bind(null, token)} />
             )}

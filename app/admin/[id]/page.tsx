@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { CopyButton } from "@/components/CopyButton";
 import { DeleteGroup } from "@/components/DeleteGroup";
 import { EditGroupForm } from "@/components/EditGroupForm";
+import { RedrawGroup } from "@/components/RedrawGroup";
 import { DrawnChip, Header, SectionTag } from "@/components/ui";
 import { box, btnDark, btnText, chip, heading, screenWide, title } from "@/components/styles";
 
@@ -72,6 +73,8 @@ export default async function AdminGroupPage({ params }: PageProps<"/admin/[id]"
               <Link href={`/g/${group.admin_token}`} className={btnDark}>Abrir painel →</Link>
               <CopyButton path={`/g/${group.admin_token}`}>Copiar link do painel</CopyButton>
             </div>
+
+            {group.drawn_at && <RedrawGroup id={group.id} />}
 
             <DeleteGroup id={group.id} name={group.name} />
           </div>

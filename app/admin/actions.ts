@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
 import { clean } from "@/lib/format";
+import { drawPairs } from "@/lib/draw";
 import { newToken } from "@/lib/tokens";
 import { adminPassword, endSession, requireAdmin, startSession } from "@/lib/admin-auth";
 import { passwordMatches } from "@/lib/admin-token";
@@ -100,4 +101,32 @@ export async function deleteGroup(id: string): Promise<void> {
   if (error) throw new Error("Falha ao excluir o grupo");
   revalidatePath("/admin");
   redirect("/admin");
+}
+
+/**
+ * Refaz o sorteio mesmo depois de alguém ter aberto o link, e marca todos como "não abriu".
+ * Não mexe nas listas de desejos nem nos links dos participantes.
+ */
+export async function redrawGroup(id: string): Promise<void> {
+  await requireAdmin();
+  if (!UUID.test(id)) return;
+  const supabase = db();
+
+  const { data: group } = await supabase.from("groups").select("admin_token, drawn_at").eq("id", id).maybeSingle();
+  if (!group?.drawn_at) return; // só refaz um sorteio que já existe
+
+  const { data: people } = await supabase.from("participants").select("id").eq("group_id", id);
+  if (!people || people.length < 3) return;
+
+  const pairs = drawPairs(people.map((p) => p.id));
+  await supabase.from("draws").delete().eq("group_id", id);
+  const { error } = await supabase
+    .from("draws")
+    .insert(pairs.map(([giver_id, receiver_id]) => ({ group_id: id, giver_id, receiver_id })));
+  if (error) throw new Error("Falha ao gravar o sorteio");
+  const { error: oErr } = await supabase.from("participants").update({ opened_at: null }).eq("group_id", id);
+  if (oErr) throw new Error("Falha ao limpar quem já abriu");
+
+  revalidatePath(`/admin/${id}`);
+  revalidatePath(`/g/${group.admin_token}`);
 }
