@@ -21,11 +21,11 @@ export function Header({ right }: { right?: React.ReactNode }) {
     <header className="sticky top-0 z-10 bg-white">
       <div className="flex h-[60px] items-center justify-between gap-4 border-b-[3px] border-ink px-5 md:px-10">
         <Link href="/" aria-label="papelzinho, página inicial" className="flex shrink-0 items-center gap-2">
-          <svg width="28" height="28" viewBox="0 -2 28 28" aria-hidden="true" style={{ overflow: "visible" }}>
-            <path d="M5 4h14l5 5v15H5z" fill="#FFE600" stroke="#0A0A0A" strokeWidth="2" />
-            <path d="M4 6C6-1 15-2 20 3L22 6Z" fill="#E4262C" stroke="#0A0A0A" strokeWidth="2" />
-            <rect x="3" y="5" width="16" height="4" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2" />
-            <circle cx="22.5" cy="6.5" r="2.5" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2" />
+          <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+            <rect x="5" y="12" width="18" height="13" fill="#FFE600" stroke="#0A0A0A" strokeWidth="2" />
+            <path d="M6 10C6 3 14 1 20 5L22 10Z" fill="#E4262C" stroke="#0A0A0A" strokeWidth="2" strokeLinejoin="round" />
+            <rect x="3" y="9" width="22" height="5" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2" />
+            <circle cx="21.5" cy="4.5" r="2.5" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2" />
           </svg>
           <span className="text-lg font-bold uppercase tracking-[-0.02em]">papelzinho</span>
         </Link>

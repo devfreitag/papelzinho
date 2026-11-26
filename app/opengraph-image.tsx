@@ -7,7 +7,6 @@ export const contentType = "image/png";
 const INK = "#0a0a0a";
 const RED = "#e4262c";
 const YELLOW = "#ffe600";
-const PAPER = "#fffef0";
 
 /** Space Grotesk (a fonte do site) vinda do Google Fonts. Se falhar, cai na fonte padrão. */
 async function spaceGrotesk(): Promise<ArrayBuffer | null> {
@@ -22,51 +21,20 @@ async function spaceGrotesk(): Promise<ArrayBuffer | null> {
   }
 }
 
-/** Faixa de bengala doce do cabeçalho do site. */
-function CandyStripe() {
-  const w = 1200;
-  const step = 48;
-  const stripes = [];
-  for (let x = -step; x < w + step; x += step) {
-    stripes.push(<polygon key={x} points={`${x},24 ${x + 18},0 ${x + 42},0 ${x + 24},24`} fill={RED} />);
-  }
+/** O mesmo logo do cabeçalho do site. */
+function Logo({ size }: { size: number }) {
+  const stroke = { stroke: INK, strokeWidth: 2, strokeLinejoin: "round" as const };
   return (
-    <svg width={w} height={24} viewBox={`0 0 ${w} 24`}>
-      <rect width={w} height={24} fill="#ffffff" />
-      {stripes}
-      <rect y={21} width={w} height={3} fill={INK} />
+    <svg width={size} height={size} viewBox="0 0 28 28">
+      <rect x={5} y={12} width={18} height={13} fill={YELLOW} {...stroke} />
+      <path d="M6 10C6 3 14 1 20 5L22 10Z" fill={RED} {...stroke} />
+      <rect x={3} y={9} width={22} height={5} fill="#ffffff" {...stroke} />
+      <circle cx={21.5} cy={4.5} r={2.5} fill="#ffffff" {...stroke} />
     </svg>
   );
 }
 
-function Gift() {
-  const stroke = { stroke: INK, strokeWidth: 6, strokeLinejoin: "round" as const };
-  return (
-    <svg width={360} height={360} viewBox="0 0 400 400">
-      {/* sombra dura */}
-      <rect x={34} y={134} width={340} height={240} fill={INK} />
-      {/* caixa e tampa */}
-      <rect x={20} y={120} width={340} height={240} fill={YELLOW} {...stroke} />
-      <rect x={4} y={86} width={372} height={64} fill={YELLOW} {...stroke} />
-      {/* fita vertical */}
-      <rect x={156} y={86} width={68} height={274} fill={RED} {...stroke} />
-      {/* alças do laço */}
-      <path
-        d="M190 86 C150 0 40 -6 56 48 C66 84 140 90 190 86Z"
-        fill={RED}
-        {...stroke}
-      />
-      <path
-        d="M190 86 C230 0 340 -6 324 48 C314 84 240 90 190 86Z"
-        fill={RED}
-        {...stroke}
-      />
-      {/* nó */}
-      <rect x={168} y={62} width={44} height={44} rx={6} fill={RED} {...stroke} />
-    </svg>
-  );
-}
-
+/** Teaser da revelação: "Você tirou ?????" num cartão branco sobre fundo amarelo. */
 export default async function Image() {
   const font = await spaceGrotesk();
 
@@ -77,48 +45,44 @@ export default async function Image() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          background: PAPER,
+          alignItems: "center",
+          justifyContent: "center",
+          background: YELLOW,
           color: INK,
           fontFamily: font ? "Space Grotesk" : "sans-serif",
           fontWeight: 700,
         }}
       >
-        <CandyStripe />
-        <div style={{ display: "flex", flex: 1, alignItems: "center", padding: "0 80px", gap: 40 }}>
-          <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                display: "flex",
-                alignSelf: "flex-start",
-                background: INK,
-                color: "#ffffff",
-                fontSize: 26,
-                letterSpacing: 4,
-                padding: "10px 22px",
-                borderRadius: 4,
-              }}
-            >
-              AMIGO SECRETO DE NATAL
-            </div>
-            <div
-              style={{
-                display: "flex",
-                marginTop: 28,
-                fontSize: 118,
-                lineHeight: 1,
-                letterSpacing: -6,
-                textTransform: "uppercase",
-              }}
-            >
-              papelzinho
-            </div>
-            <div style={{ display: "flex", marginTop: 32, fontSize: 40, lineHeight: 1.25, color: "#333333" }}>
-              Abra seu link para descobrir quem você tirou.
-            </div>
-          </div>
-          <div style={{ display: "flex", flexShrink: 0 }}>
-            <Gift />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: 940,
+            background: "#ffffff",
+            border: `8px solid ${INK}`,
+            borderRadius: 6,
+            boxShadow: `18px 18px 0 ${INK}`,
+            padding: "34px 0 30px",
+          }}
+        >
+          <div style={{ display: "flex", fontSize: 34, letterSpacing: 8 }}>VOCÊ TIROU</div>
+          <div style={{ display: "flex", fontSize: 220, lineHeight: 1.05, letterSpacing: 26, marginTop: 6 }}>?????</div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 16,
+              width: 820,
+              marginTop: 14,
+              paddingTop: 22,
+              borderTop: `4px solid ${INK}`,
+            }}
+          >
+            <Logo size={64} />
+            <div style={{ display: "flex", fontSize: 44, letterSpacing: -1, textTransform: "uppercase" }}>papelzinho</div>
+            <div style={{ display: "flex", fontSize: 30, color: "#666666" }}>· amigo secreto de Natal</div>
           </div>
         </div>
       </div>
