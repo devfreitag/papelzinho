@@ -7,6 +7,7 @@ export const contentType = "image/png";
 const INK = "#0a0a0a";
 const RED = "#e4262c";
 const YELLOW = "#ffe600";
+const GREEN = "#00c853";
 
 /** Space Grotesk (a fonte do site) vinda do Google Fonts. Se falhar, cai na fonte padrão. */
 async function spaceGrotesk(): Promise<ArrayBuffer | null> {
@@ -34,7 +35,7 @@ function Logo({ size }: { size: number }) {
   );
 }
 
-/** Teaser da revelação: "Você tirou ?????" num cartão branco sobre fundo amarelo. */
+/** Teaser da revelação: "Você tirou ?????" num cartão branco sobre fundo verde. */
 export default async function Image() {
   const font = await spaceGrotesk();
 
@@ -47,7 +48,7 @@ export default async function Image() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: YELLOW,
+          background: GREEN,
           color: INK,
           fontFamily: font ? "Space Grotesk" : "sans-serif",
           fontWeight: 700,
