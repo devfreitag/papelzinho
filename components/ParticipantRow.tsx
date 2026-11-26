@@ -1,5 +1,5 @@
 import { listIsComplete, wishItems } from "@/lib/format";
-import { Avatar, OpenedChip } from "./ui";
+import { OpenedChip } from "./ui";
 import { chip } from "./styles";
 import { WishItems } from "./WishItems";
 
@@ -59,19 +59,18 @@ export function ParticipantRow({
       <div className="flex items-start">
         <details className="group min-w-0 flex-1">
           <summary className="flex min-h-[60px] cursor-pointer list-none items-center gap-3 px-3 py-2 hover:bg-yellow [&::-webkit-details-marker]:hidden">
-            <Avatar name={person.name} />
             <span className="min-w-0 flex-1 font-medium [overflow-wrap:anywhere]">{person.name}</span>
             {showOpened && <OpenedChip opened={!!person.opened_at} />}
             <span aria-hidden="true" className="shrink-0 font-bold group-open:hidden">↓</span>
             <span aria-hidden="true" className="hidden shrink-0 font-bold group-open:inline">↑</span>
           </summary>
-          <div className="px-3 pb-3 pt-1 sm:pl-[60px]">
+          <div className="px-3 pb-3 pt-1">
             <ListDetails wishlist={person.wishlist} dislikes={person.dislikes} />
           </div>
         </details>
         {action}
       </div>
-      {children && <div className="px-3 pb-4 pt-1 sm:pl-[60px]">{children}</div>}
+      {children && <div className="px-3 pb-3">{children}</div>}
     </li>
   );
 }

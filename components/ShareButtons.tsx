@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CopyIcon, WhatsAppIcon } from "./ui";
 import { btnSmall } from "./styles";
 
 export function ShareButtons({
@@ -27,12 +28,14 @@ export function ShareButtons({
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
-      <button type="button" onClick={whatsapp} className={btnSmall}>
-        Enviar no WhatsApp ↗
+    <div className="grid grid-cols-2 gap-3">
+      <button type="button" onClick={whatsapp} className={`${btnSmall} w-full justify-center gap-2`}>
+        WhatsApp
+        <WhatsAppIcon />
       </button>
-      <button type="button" onClick={copy} className={btnSmall}>
+      <button type="button" onClick={copy} className={`${btnSmall} w-full justify-center gap-2`}>
         {copied ? "Copiado!" : "Copiar link"}
+        <CopyIcon done={copied} />
       </button>
     </div>
   );
