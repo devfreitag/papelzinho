@@ -5,6 +5,8 @@ import "./globals.css";
 const spaceGrotesk = Space_Grotesk({ variable: "--font-space-grotesk", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  // Base das URLs absolutas (imagem de preview). Troque com SITE_URL se o domínio mudar.
+  metadataBase: new URL(process.env.SITE_URL ?? "https://papelzinho.devfreitag.com"),
   title: "papelzinho · amigo secreto de Natal",
   description: "Amigo secreto com link individual: nem o organizador vê quem tirou quem.",
   robots: { index: false },
