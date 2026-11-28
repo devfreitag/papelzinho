@@ -1,8 +1,11 @@
 "use server";
 
+import { createHmac } from "node:crypto";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
+import { insertGroup, MAX_PARTICIPANTS } from "@/lib/groups";
 import { drawPairs } from "@/lib/draw";
 import { clean, itemWithBadLink, listIsComplete, wishItems, wishText } from "@/lib/format";
 import { newToken } from "@/lib/tokens";
@@ -18,11 +21,50 @@ async function groupByAdminToken(adminToken: string) {
   return data;
 }
 
+const CREATE_LIMIT_PER_HOUR = 5;
+
+/** IP de quem fez o pedido, em hash: dá para contar tentativas sem guardar o IP. */
+async function requesterIpHash() {
+  const h = await headers();
+  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "local";
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) throw new Error("Defina SUPABASE_SERVICE_ROLE_KEY");
+  return createHmac("sha256", key).update(ip).digest("base64url");
+}
+
+/** Criação aberta, sem login: o link do painel é o que dá acesso ao grupo. */
+export async function createPublicGroup(_: FormState, formData: FormData): Promise<FormState> {
+  // Campo-isca: invisível para pessoas, bots costumam preencher.
+  if (String(formData.get("website") ?? "")) return { error: "Não consegui criar o grupo. Tente de novo." };
+
+  const creator_ip_hash = await requesterIpHash();
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count, error: cErr } = await db()
+    .from("groups")
+    .select("id", { count: "exact", head: true })
+    .eq("creator_ip_hash", creator_ip_hash)
+    .gte("created_at", since);
+  if (cErr) return { error: "Não consegui criar o grupo. Tente de novo." };
+  if ((count ?? 0) >= CREATE_LIMIT_PER_HOUR) {
+    return { error: "Muitos grupos criados agora. Tente de novo daqui a pouco." };
+  }
+
+  const res = await insertGroup(formData, { creator_ip_hash });
+  if (!res.group) return { error: res.error };
+  redirect(`/g/${res.group.admin_token}?novo=1`);
+}
+
 export async function addParticipant(adminToken: string, formData: FormData) {
   const name = clean(formData.get("name"), 60);
   const group = await groupByAdminToken(adminToken);
   if (!group || group.drawn_at || !name) return;
-  await db()
+  const supabase = db();
+  const { count } = await supabase
+    .from("participants")
+    .select("id", { count: "exact", head: true })
+    .eq("group_id", group.id);
+  if ((count ?? 0) >= MAX_PARTICIPANTS) return;
+  await supabase
     .from("participants")
     .insert({ group_id: group.id, name, token: newToken() });
   revalidatePath(`/g/${adminToken}`);

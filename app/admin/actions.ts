@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/supabase";
 import { clean } from "@/lib/format";
 import { drawPairs } from "@/lib/draw";
-import { newToken } from "@/lib/tokens";
+import { insertGroup } from "@/lib/groups";
 import { adminPassword, endSession, requireAdmin, startSession } from "@/lib/admin-auth";
 import { passwordMatches } from "@/lib/admin-token";
 import type { FormState } from "@/app/actions";
@@ -31,42 +31,11 @@ export async function adminLogout() {
 export async function createGroup(_: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
 
-  const name = clean(formData.get("name"), 80);
-  if (!name) return { error: "Dê um nome para o grupo." };
-
-  const names = [
-    ...new Set(formData.getAll("names").map((n) => clean(n, 60)).filter(Boolean)),
-  ];
-  if (names.length < 3) return { error: "Precisa de pelo menos 3 participantes (nomes diferentes)." };
-  if (names.length > 100) return { error: "Máximo de 100 participantes." };
-
-  const date = clean(formData.get("exchange_date"), 10);
-  const admin_token = newToken();
-
-  const supabase = db();
-  const { data: group, error } = await supabase
-    .from("groups")
-    .insert({
-      name,
-      budget: clean(formData.get("budget"), 40) || null,
-      exchange_date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
-      message: clean(formData.get("message"), 500) || null,
-      admin_token,
-    })
-    .select("id")
-    .single();
-  if (error || !group) return { error: "Não consegui criar o grupo. Tente de novo." };
-
-  const { error: pErr } = await supabase
-    .from("participants")
-    .insert(names.map((n) => ({ group_id: group.id, name: n, token: newToken() })));
-  if (pErr) {
-    await supabase.from("groups").delete().eq("id", group.id);
-    return { error: "Não consegui salvar os participantes. Tente de novo." };
-  }
+  const res = await insertGroup(formData);
+  if (!res.group) return { error: res.error };
 
   revalidatePath("/admin");
-  redirect(`/admin/${group.id}`);
+  redirect(`/admin/${res.group.id}`);
 }
 
 export async function updateGroup(id: string, _: FormState, formData: FormData): Promise<FormState> {

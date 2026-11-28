@@ -11,6 +11,10 @@ create table if not exists groups (
   created_at timestamptz not null default now()
 );
 
+-- Hash (HMAC) do IP de quem criou pela página inicial, para limitar criações por hora. Null nos do admin.
+alter table groups add column if not exists creator_ip_hash text;
+create index if not exists groups_creator_ip_created_idx on groups(creator_ip_hash, created_at);
+
 create table if not exists participants (
   id uuid primary key default gen_random_uuid(),
   group_id uuid not null references groups(id) on delete cascade,

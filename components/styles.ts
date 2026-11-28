@@ -33,6 +33,7 @@ export const btnText =
 
 export const box = `${edge} bg-white shadow-hard`;
 export const boxDark = `${edge} bg-ink text-white shadow-hard`;
+export const boxYellow = `${edge} bg-yellow text-ink shadow-hard`;
 /** Card que é um link inteiro. O fundo vem de quem usa. */
 export const boxLink = `${edge} lift block h-full p-4`;
 export const row = "flex items-center gap-3 border-b-[3px] border-ink px-3 py-2 last:border-b-0";

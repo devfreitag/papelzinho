@@ -4,16 +4,19 @@ import { isAdmin } from "@/lib/admin-auth";
 import { db } from "@/lib/supabase";
 import { listIsComplete, shortDate } from "@/lib/format";
 import { addParticipant, removeParticipant, runDraw } from "@/app/actions";
+import { CopyButton } from "@/components/CopyButton";
 import { ParticipantRow } from "@/components/ParticipantRow";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Header, ProgressBar, SectionTag, XIcon } from "@/components/ui";
-import { box, boxDark, btnAdd, btnIcon, btnText, field, heading, label, lead, meta, screenWide, title } from "@/components/styles";
+import { box, boxDark, boxYellow, btnAdd, btnIcon, btnText, field, heading, label, lead, meta, screenWide, title } from "@/components/styles";
 
 export const metadata = { title: "Painel do organizador" };
 
-export default async function AdminPage({ params }: PageProps<"/g/[token]">) {
+export default async function AdminPage({ params, searchParams }: PageProps<"/g/[token]">) {
   const { token } = await params;
+  // Vindo da criação pela página inicial: destaca o aviso de guardar o link.
+  const isNew = (await searchParams).novo === "1";
   const supabase = db();
 
   const { data: group, error } = await supabase
@@ -44,12 +47,17 @@ export default async function AdminPage({ params }: PageProps<"/g/[token]">) {
   const when = group.exchange_date ? `Troca em ${shortDate(group.exchange_date)}` : null;
 
   const keepLink = (
-    <div className={`${box} p-5`}>
-      <h2 className={heading}>Guarde este endereço</h2>
-      <p className="mt-2 text-body">
-        Este é o seu painel: salve o link para voltar. Evite abrir os links dos outros, porque você veria quem eles
-        tiraram.
-      </p>
+    <div className={`${isNew ? boxYellow : box} flex flex-col gap-4 p-5`}>
+      <div>
+        <h2 className={heading}>{isNew ? "Grupo criado! Guarde este endereço" : "Guarde este endereço"}</h2>
+        <p className={`mt-2 ${isNew ? "" : "text-body"}`}>
+          {isNew
+            ? "Este link é a única forma de voltar ao painel: não tem login nem senha. Copie e salve em algum lugar."
+            : "Este é o seu painel: salve o link para voltar."}{" "}
+          Evite abrir os links dos outros, porque você veria quem eles tiraram.
+        </p>
+      </div>
+      <CopyButton path={`/g/${token}`}>Copiar link do painel</CopyButton>
     </div>
   );
 

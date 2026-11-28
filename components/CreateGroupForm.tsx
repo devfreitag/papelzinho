@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
-import { createGroup } from "@/app/admin/actions";
+import type { FormState } from "@/app/actions";
 import { SubmitButton } from "./SubmitButton";
 import { Avatar, ErrorNote, Header, SectionTag, XIcon } from "./ui";
 import { box, btnAdd, btnIcon, btnPrimary, btnText, field, label, lead, meta, row, screen, textarea, title } from "./styles";
@@ -16,8 +16,18 @@ function Steps({ step }: { step: 1 | 2 }) {
   );
 }
 
-export function CreateGroupForm() {
-  const [state, action] = useActionState(createGroup, undefined);
+type Props = {
+  /** Server Action que cria o grupo (a do admin ou a pública). */
+  create: (state: FormState, formData: FormData) => Promise<FormState>;
+  headerRight?: React.ReactNode;
+  /** Link de voltar, só no admin. */
+  backHref?: string;
+  /** Frase do passo 1. */
+  intro?: string;
+};
+
+export function CreateGroupForm({ create, headerRight, backHref, intro = "Isso aparece no link de cada participante." }: Props) {
+  const [state, action] = useActionState(create, undefined);
   const [step, setStep] = useState<1 | 2>(1);
   const [names, setNames] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
@@ -37,18 +47,24 @@ export function CreateGroupForm() {
 
   return (
     <>
-      <Header right="Admin" />
+      <Header right={headerRight} />
       <main className={screen}>
-        <Link href="/admin" className={btnText}>← Todos os grupos</Link>
+        {backHref && <Link href={backHref} className={btnText}>← Todos os grupos</Link>}
         <form action={action} className="flex flex-col gap-6">
           <Steps step={step} />
+
+          {/* Campo-isca: fica fora da tela; quem preenche é bot. */}
+          <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+            <label htmlFor="website">Não preencha</label>
+            <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+          </div>
 
           {/* Passo 1: grupo. Continua no DOM no passo 2 para os campos irem no envio. */}
           <div className={step === 1 ? "flex flex-col gap-6" : "hidden"}>
             <div>
               <SectionTag>Passo 1 de 2</SectionTag>
               <h1 className={title}>Qual é o grupo?</h1>
-              <p className={`${lead} mt-4`}>Isso aparece no link de cada participante.</p>
+              <p className={`${lead} mt-4`}>{intro}</p>
             </div>
 
             <div className="flex flex-col gap-2">

@@ -1,6 +1,12 @@
-import { redirect } from "next/navigation";
+import { createPublicGroup } from "@/app/actions";
+import { CreateGroupForm } from "@/components/CreateGroupForm";
 
-// Não há página pública: quem participa entra pelo próprio link (/p/...).
+// Qualquer pessoa cria um grupo aqui, sem cadastro. Quem participa entra pelo próprio link (/p/...).
 export default function Home() {
-  redirect("/admin");
+  return (
+    <CreateGroupForm
+      create={createPublicGroup}
+      intro="Monte o amigo secreto em 2 passos, sem cadastro. O nome aparece no link de cada participante."
+    />
+  );
 }
